@@ -6,7 +6,7 @@ use winnow::{
     branch::alt,
     bytes::complete::is_not,
     combinator::{all_consuming, opt},
-    error::context,
+    prelude::*,
 };
 
 use crate::{bstr::ByteSlice, commit::decode, parse, parse::NL, CommitRefIter};
@@ -119,9 +119,9 @@ impl<'a> CommitRefIter<'a> {
         use State::*;
         Ok(match state {
             Tree => {
-                let (i, tree) = context("tree <40 lowercase hex char>", |i| {
-                    parse::header_field(i, b"tree", parse::hex_hash)
-                })(i)?;
+                let (i, tree) = (|i| parse::header_field(i, b"tree", parse::hex_hash))
+                    .context("tree <40 lowercase hex char>")
+                    .parse_next(i)?;
                 *state = State::Parents;
                 (
                     i,
@@ -131,10 +131,9 @@ impl<'a> CommitRefIter<'a> {
                 )
             }
             Parents => {
-                let (i, parent) = context(
-                    "commit <40 lowercase hex char>",
-                    opt(|i| parse::header_field(i, b"parent", parse::hex_hash)),
-                )(i)?;
+                let (i, parent) = opt(|i| parse::header_field(i, b"parent", parse::hex_hash))
+                    .context("commit <40 lowercase hex char>")
+                    .parse_next(i)?;
                 match parent {
                     Some(parent) => (
                         i,
@@ -162,7 +161,9 @@ impl<'a> CommitRefIter<'a> {
                         (&b"committer"[..], "committer <signature>")
                     }
                 };
-                let (i, signature) = context(err_msg, |i| parse::header_field(i, field_name, parse::signature))(i)?;
+                let (i, signature) = (|i| parse::header_field(i, field_name, parse::signature))
+                    .context(err_msg)
+                    .parse_next(i)?;
                 (
                     i,
                     match who {
@@ -172,10 +173,9 @@ impl<'a> CommitRefIter<'a> {
                 )
             }
             Encoding => {
-                let (i, encoding) = context(
-                    "encoding <encoding>",
-                    opt(|i| parse::header_field(i, b"encoding", is_not(NL))),
-                )(i)?;
+                let (i, encoding) = opt(|i| parse::header_field(i, b"encoding", is_not(NL)))
+                    .context("encoding <encoding>")
+                    .parse_next(i)?;
                 *state = State::ExtraHeaders;
                 match encoding {
                     Some(encoding) => (i, Token::Encoding(encoding.as_bstr())),
@@ -183,16 +183,15 @@ impl<'a> CommitRefIter<'a> {
                 }
             }
             ExtraHeaders => {
-                let (i, extra_header) = context(
-                    "<field> <single-line|multi-line>",
-                    opt(alt((
-                        |i| parse::any_header_field_multi_line(i).map(|(i, (k, o))| (i, (k.as_bstr(), Cow::Owned(o)))),
-                        |i| {
-                            parse::any_header_field(i, is_not(NL))
-                                .map(|(i, (k, o))| (i, (k.as_bstr(), Cow::Borrowed(o.as_bstr()))))
-                        },
-                    ))),
-                )(i)?;
+                let (i, extra_header) = opt(alt((
+                    |i| parse::any_header_field_multi_line(i).map(|(i, (k, o))| (i, (k.as_bstr(), Cow::Owned(o)))),
+                    |i| {
+                        parse::any_header_field(i, is_not(NL))
+                            .map(|(i, (k, o))| (i, (k.as_bstr(), Cow::Borrowed(o.as_bstr()))))
+                    },
+                )))
+                .context("<field> <single-line|multi-line>")
+                .parse_next(i)?;
                 match extra_header {
                     Some(extra_header) => (i, Token::ExtraHeader(extra_header)),
                     None => {
