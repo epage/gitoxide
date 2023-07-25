@@ -4,9 +4,10 @@ use bstr::BStr;
 use gix_hash::{oid, ObjectId};
 use winnow::{
     branch::alt,
-    bytes::complete::is_not,
-    combinator::{all_consuming, opt},
+    bytes::take_till1,
+    combinator::{eof, opt},
     prelude::*,
+    sequence::terminated,
 };
 
 use crate::{bstr::ByteSlice, commit::decode, parse, parse::NL, CommitRefIter};
@@ -173,7 +174,7 @@ impl<'a> CommitRefIter<'a> {
                 )
             }
             Encoding => {
-                let (i, encoding) = opt(|i| parse::header_field(i, b"encoding", is_not(NL)))
+                let (i, encoding) = opt(|i| parse::header_field(i, b"encoding", take_till1(NL)))
                     .context("encoding <encoding>")
                     .parse_next(i)?;
                 *state = State::ExtraHeaders;
@@ -186,7 +187,7 @@ impl<'a> CommitRefIter<'a> {
                 let (i, extra_header) = opt(alt((
                     |i| parse::any_header_field_multi_line(i).map(|(i, (k, o))| (i, (k.as_bstr(), Cow::Owned(o)))),
                     |i| {
-                        parse::any_header_field(i, is_not(NL))
+                        parse::any_header_field(i, take_till1(NL))
                             .map(|(i, (k, o))| (i, (k.as_bstr(), Cow::Borrowed(o.as_bstr()))))
                     },
                 )))
@@ -201,7 +202,7 @@ impl<'a> CommitRefIter<'a> {
                 }
             }
             Message => {
-                let (i, message) = all_consuming(decode::message)(i)?;
+                let (i, message) = terminated(decode::message, eof)(i)?;
                 debug_assert!(
                     i.is_empty(),
                     "we should have consumed all data - otherwise iter may go forever"
