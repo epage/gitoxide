@@ -33,7 +33,7 @@ itoa = "1.0.1"
 thiserror = "1.0.34"
 hex = "0.4.2"
 bstr = { version = "1.3.0", default-features = false, features = ["std", "unicode"] }
-winnow = "0.3"
+winnow = "0.4"
 smallvec = { version = "1.4.0", features = ["write"] }
 serde = { version = "1.0.114", optional = true, default-features = false, features = ["derive"]}
 
