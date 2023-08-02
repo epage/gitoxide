@@ -3,11 +3,11 @@ use std::borrow::Cow;
 use bstr::BStr;
 use gix_hash::{oid, ObjectId};
 use winnow::{
-    branch::alt,
-    bytes::take_till1,
+    combinator::alt,
+    combinator::terminated,
     combinator::{eof, opt},
     prelude::*,
-    sequence::terminated,
+    token::take_till1,
 };
 
 use crate::{bstr::ByteSlice, commit::decode, parse, parse::NL, CommitRefIter};
