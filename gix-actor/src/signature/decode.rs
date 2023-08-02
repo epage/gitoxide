@@ -19,8 +19,8 @@ pub(crate) mod function {
 
     /// Parse a signature from the bytes input `i` using `nom`.
     pub fn decode<'a, E: ParserError<&'a [u8]> + AddContext<&'a [u8]>>(
-        i: &'a [u8],
-    ) -> IResult<&'a [u8], SignatureRef<'a>, E> {
+        i: &mut &'a [u8],
+    ) -> PResult<SignatureRef<'a>, E> {
         separated_pair(
             identity,
             b" ",
@@ -60,8 +60,8 @@ pub(crate) mod function {
 
     /// Parse an identity from the bytes input `i` (like `name <email>`) using `nom`.
     pub fn identity<'a, E: ParserError<&'a [u8]> + AddContext<&'a [u8]>>(
-        i: &'a [u8],
-    ) -> IResult<&'a [u8], IdentityRef<'a>, E> {
+        i: &mut &'a [u8],
+    ) -> PResult<IdentityRef<'a>, E> {
         (
             terminated(take_until0(&b" <"[..]), take(2usize)).context("<name>"),
             terminated(take_until0(&b">"[..]), take(1usize)).context("<email>"),

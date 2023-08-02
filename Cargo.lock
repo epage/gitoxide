@@ -1267,7 +1267,7 @@ dependencies = [
  "pretty_assertions",
  "serde",
  "thiserror",
- "winnow 0.4.9",
+ "winnow",
 ]
 
 [[package]]
@@ -1397,7 +1397,7 @@ dependencies = [
  "smallvec",
  "thiserror",
  "unicode-bom",
- "winnow 0.5.1",
+ "winnow",
 ]
 
 [[package]]
@@ -1858,7 +1858,7 @@ dependencies = [
  "serde",
  "smallvec",
  "thiserror",
- "winnow 0.4.9",
+ "winnow",
 ]
 
 [[package]]
@@ -2097,7 +2097,7 @@ dependencies = [
  "serde",
  "tempfile",
  "thiserror",
- "winnow 0.4.9",
+ "winnow",
 ]
 
 [[package]]
@@ -2245,7 +2245,7 @@ dependencies = [
  "parking_lot",
  "tar",
  "tempfile",
- "winnow 0.4.9",
+ "winnow",
  "xz2",
 ]
 
@@ -4750,15 +4750,6 @@ name = "windows_x86_64_msvc"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
-
-[[package]]
-name = "winnow"
-version = "0.4.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81a2094c43cc94775293eaa0e499fbc30048a6d824ac82c0351a8c0bf9112529"
-dependencies = [
- "memchr",
-]
 
 [[package]]
 name = "winnow"
